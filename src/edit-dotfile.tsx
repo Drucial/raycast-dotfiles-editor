@@ -16,22 +16,35 @@ const FILES = [
 function openFileInDefaultTerminal(filePath: string) {
   showToast({
     style: Toast.Style.Animated,
-    title: "Opening in Default Terminal...",
+    title: "Opening in Terminal...",
   });
 
-  const command = `osascript -e 'tell application "Terminal" to do script "nvim ${filePath}"' -e 'tell application "Terminal" to activate'`;
+  // First attempt to open in Kitty
+  const kittyCommand = `/Applications/kitty.app/Contents/MacOS/kitty zsh -l -c 'nvim ${filePath}'`;
   
-  child_process.exec(command, (error) => {
+  child_process.exec(kittyCommand, (error) => {
     if (error) {
-      showToast({
-        style: Toast.Style.Failure,
-        title: "Failed to open file",
-        message: error.message,
+      // If Kitty isn't available, fall back to opening in default Terminal
+      const terminalCommand = `osascript -e 'tell application "Terminal" to do script "nvim ${filePath}"' -e 'tell application "Terminal" to activate'`;
+      
+      child_process.exec(terminalCommand, (terminalError) => {
+        if (terminalError) {
+          showToast({
+            style: Toast.Style.Failure,
+            title: "Failed to open file",
+            message: terminalError.message,
+          });
+        } else {
+          showToast({
+            style: Toast.Style.Success,
+            title: "File opened successfully in Terminal",
+          });
+        }
       });
     } else {
       showToast({
         style: Toast.Style.Success,
-        title: "File opened successfully",
+        title: "File opened successfully in Kitty",
       });
     }
   });
