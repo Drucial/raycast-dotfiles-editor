@@ -2,6 +2,8 @@ import { ActionPanel, Action, Icon, List, showToast, Toast, Form, useNavigation,
 import * as child_process from "child_process";
 import * as path from "path";
 import React, { useState, useEffect } from "react";
+import fs from "fs";
+import { homedir } from "os";
 
 // Define your initial list of config files with resolved paths
 const initialFiles = [
@@ -81,6 +83,37 @@ function AddFileForm({ onAdd }: { onAdd: (file: { id: string; title: string; pat
   );
 }
 
+function EditFileForm({ file, onEdit }: { file: { id: string; title: string; path: string }; onEdit: (editedFile: { id: string; title: string; path: string }) => void }) {
+  const { pop } = useNavigation();
+  const [title, setTitle] = useState(file.title);
+  const [filePath, setFilePath] = useState(file.path);
+
+  function handleSubmit() {
+    if (title && filePath) {
+      onEdit({ id: file.id, title, path: filePath });
+      pop();
+    } else {
+      showToast({
+        style: Toast.Style.Failure,
+        title: "Both fields are required",
+      });
+    }
+  }
+
+  return (
+    <Form
+      actions={
+        <ActionPanel>
+          <Action.SubmitForm title="Save Changes" onSubmit={handleSubmit} />
+        </ActionPanel>
+      }
+    >
+      <Form.TextField id="title" title="Title" value={title} onChange={setTitle} />
+      <Form.TextField id="filePath" title="File Path" value={filePath} onChange={setFilePath} />
+    </Form>
+  );
+}
+
 export default function Command() {
   const [files, setFiles] = useState<{ id: string; title: string; path: string }[]>([]);
 
@@ -124,6 +157,65 @@ export default function Command() {
     setFiles((prevFiles) => [...prevFiles, file]);
   }
 
+  function editFile(editedFile: { id: string; title: string; path: string }) {
+    setFiles((prevFiles) => prevFiles.map((file) => (file.id === editedFile.id ? editedFile : file)));
+  }
+
+  function removeFile(fileId: string) {
+    setFiles((prevFiles) => prevFiles.filter((file) => file.id !== fileId));
+    showToast({
+      style: Toast.Style.Success,
+      title: "File removed successfully",
+    });
+  }
+
+  function exportFiles() {
+    const filePath = path.join(homedir(), "raycast-config-files.json");
+    fs.writeFile(filePath, JSON.stringify(files, null, 2), (err) => {
+      if (err) {
+        showToast({
+          style: Toast.Style.Failure,
+          title: "Failed to export files",
+          message: err.message,
+        });
+      } else {
+        showToast({
+          style: Toast.Style.Success,
+          title: "Files exported successfully",
+          message: `Exported to ${filePath}`,
+        });
+      }
+    });
+  }
+
+  function importFiles() {
+    const filePath = path.join(homedir(), "raycast-config-files.json");
+    fs.readFile(filePath, "utf8", (err, data) => {
+      if (err) {
+        showToast({
+          style: Toast.Style.Failure,
+          title: "Failed to import files",
+          message: err.message,
+        });
+      } else {
+        try {
+          const importedFiles = JSON.parse(data);
+          setFiles(importedFiles);
+          showToast({
+            style: Toast.Style.Success,
+            title: "Files imported successfully",
+          });
+        } catch (parseError) {
+          showToast({
+            style: Toast.Style.Failure,
+            title: "Failed to parse imported files",
+            message: parseError.message,
+          });
+        }
+      }
+    });
+  }
+
   return (
     <List>
       {files.map((file) => (
@@ -138,7 +230,13 @@ export default function Command() {
                 title="Open in Default Terminal"
                 onAction={() => openFileInDefaultTerminal(file.path)}
               />
-              <Action.Push icon={Icon.Plus} title="Add New File" target={<AddFileForm onAdd={addFile} />} />
+              <Action.Push icon={Icon.Pencil} title="Edit File" target={<EditFileForm file={file} onEdit={editFile} />} />
+              <Action
+                icon={Icon.Trash}
+                title="Remove File"
+                onAction={() => removeFile(file.id)}
+                style={Action.Style.Destructive}
+              />
             </ActionPanel>
           }
         />
@@ -149,6 +247,8 @@ export default function Command() {
         actions={
           <ActionPanel>
             <Action.Push icon={Icon.Plus} title="Add New File" target={<AddFileForm onAdd={addFile} />} />
+            <Action icon={Icon.Upload} title="Export Files" onAction={exportFiles} />
+            <Action icon={Icon.Download} title="Import Files" onAction={importFiles} />
           </ActionPanel>
         }
       />
