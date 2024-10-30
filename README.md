@@ -1,0 +1,3 @@
+# Edit Dotfiles
+
+Quickly access and edit your essential configuration files with a streamlined list-based UI. This extension provides a navigable list of commonly edited dotfiles and config files, letting you open them directly in the Kitty terminal with Neovim. Use arrow keys to select your desired file and press Enter to launch it in a terminal, saving you time and keystrokes in managing your development environment.

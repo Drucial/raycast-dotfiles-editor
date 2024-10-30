@@ -1,0 +1,48 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "edit-dotfiles",
+  "title": "Edit Dotfiles",
+  "description": "Quickly access and edit your essential configuration files with a streamlined list-based UI. This extension provides a navigable list of commonly edited dotfiles and config files, letting you open them directly in the Kitty terminal with Neovim. Use arrow keys to select your desired file and press Enter to launch it in a terminal, saving you time and keystrokes in managing your development environment.",
+  "icon": "extension-icon.png",
+  "author": "drucial_white",
+  "categories": [
+    "Developer Tools"
+  ],
+  "license": "MIT",
+  "commands": [
+    {
+      "name": "edit-dotfile",
+      "title": "Edit Dotfile",
+      "subtitle": "Edit your dotfiles using nvim",
+      "description": "Launch your terminal and nvim your dotfiles",
+      "mode": "view"
+    },
+    {
+      "name": "manage-dotfiles",
+      "title": "Manage Dotfiles",
+      "subtitle": "Add/Remove Dotfiles",
+      "description": "",
+      "mode": "no-view"
+    }
+  ],
+  "dependencies": {
+    "@raycast/api": "^1.84.7",
+    "@raycast/utils": "^1.17.0"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^1.0.11",
+    "@types/node": "20.8.10",
+    "@types/react": "18.3.3",
+    "eslint": "^8.57.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.4.5"
+  },
+  "scripts": {
+    "build": "ray build",
+    "dev": "ray develop",
+    "fix-lint": "ray lint --fix",
+    "lint": "ray lint",
+    "prepublishOnly": "echo \"\\n\\nIt seems like you are trying to publish the Raycast extension to npm.\\n\\nIf you did intend to publish it to npm, remove the \\`prepublishOnly\\` script and rerun \\`npm publish\\` again.\\nIf you wanted to publish it to the Raycast Store instead, use \\`npm run publish\\` instead.\\n\\n\" && exit 1",
+    "publish": "npx @raycast/api@latest publish"
+  }
+}
