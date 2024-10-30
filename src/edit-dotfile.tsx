@@ -19,13 +19,19 @@ function openFileInDefaultTerminal(filePath: string) {
     title: "Opening in Default Terminal...",
   });
 
-  const command = `osascript -e 'tell application "Terminal" to do script "nvim ${filePath}"' &`;
+  const command = `osascript -e 'tell application "Terminal" to do script "nvim ${filePath}"' -e 'tell application "Terminal" to activate'`;
+  
   child_process.exec(command, (error) => {
     if (error) {
       showToast({
         style: Toast.Style.Failure,
         title: "Failed to open file",
         message: error.message,
+      });
+    } else {
+      showToast({
+        style: Toast.Style.Success,
+        title: "File opened successfully",
       });
     }
   });
