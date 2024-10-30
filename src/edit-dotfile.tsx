@@ -1,7 +1,7 @@
 import { ActionPanel, Action, Icon, List, showToast, Toast, Form, useNavigation, LocalStorage } from "@raycast/api";
 import * as child_process from "child_process";
 import * as path from "path";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import fs from "fs";
 import { homedir } from "os";
 
