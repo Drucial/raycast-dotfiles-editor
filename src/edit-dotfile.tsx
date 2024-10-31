@@ -7,14 +7,54 @@ import { homedir } from "os";
 
 // Define your initial list of config files with resolved paths
 const initialFiles = [
-  { id: "zsh", title: "Zsh Config", path: path.resolve(process.env.HOME || "", ".config/zsh/.zshrc") },
-  { id: "nvim", title: "Neovim Config", path: path.resolve(process.env.HOME || "", ".config/nvim") },
-  { id: "alias", title: "Aliases Config", path: path.resolve(process.env.HOME || "", ".config/zsh/aliases.zsh") },
-  { id: "warp", title: "Warp Theme", path: path.resolve(process.env.HOME || "", ".warp/themes/Celestial.yaml") },
-  { id: "gitconfig", title: "Git Config", path: path.resolve(process.env.HOME || "", ".gitconfig") },
-  { id: "starship", title: "Starship Config", path: path.resolve(process.env.HOME || "", ".config/starship.toml") },
-  { id: "bat", title: "Bat Config", path: path.resolve(process.env.HOME || "", ".config/bat/config") },
-  { id: "aero", title: "Aerospace Config", path: path.resolve(process.env.HOME || "", ".config/aerospace/aerospace.toml") },
+  {
+    id: "zsh",
+    title: "Zsh Config",
+    path: path.resolve(process.env.HOME || "", ".config/zsh/.zshrc"),
+    icon: Icon.Terminal,
+  },
+  {
+    id: "nvim",
+    title: "Neovim Config",
+    path: path.resolve(process.env.HOME || "", ".config/nvim"),
+    icon: Icon.Terminal,
+  },
+  {
+    id: "alias",
+    title: "Aliases Config",
+    path: path.resolve(process.env.HOME || "", ".config/zsh/aliases.zsh"),
+    icon: Icon.Terminal,
+  },
+  {
+    id: "warp",
+    title: "Warp Theme",
+    path: path.resolve(process.env.HOME || "", ".warp/themes/Celestial.yaml"),
+    icon: Icon.Terminal,
+  },
+  {
+    id: "gitconfig",
+    title: "Git Config",
+    path: path.resolve(process.env.HOME || "", ".gitconfig"),
+    icon: Icon.Terminal,
+  },
+  {
+    id: "starship",
+    title: "Starship Config",
+    path: path.resolve(process.env.HOME || "", ".config/starship.toml"),
+    icon: Icon.Terminal,
+  },
+  {
+    id: "bat",
+    title: "Bat Config",
+    path: path.resolve(process.env.HOME || "", ".config/bat/config"),
+    icon: Icon.Terminal,
+  },
+  {
+    id: "aero",
+    title: "Aerospace Config",
+    path: path.resolve(process.env.HOME || "", ".config/aerospace/aerospace.toml"),
+    icon: Icon.Terminal,
+  },
 ];
 
 function openFileInDefaultTerminal(filePath: string) {
@@ -52,19 +92,29 @@ function openFileInDefaultTerminal(filePath: string) {
   });
 }
 
-function AddFileForm({ onAdd }: { onAdd: (file: { id: string; title: string; path: string }) => void }) {
+function formatPath(inputPath: string): string {
+  let formattedPath = inputPath.trim();
+  if (formattedPath.startsWith("~")) {
+    formattedPath = path.join(homedir(), formattedPath.slice(1));
+  }
+  return path.resolve(formattedPath);
+}
+
+function AddFileForm({ onAdd }: { onAdd: (file: { id: string; title: string; path: string; icon: string }) => void }) {
   const { pop } = useNavigation();
   const [title, setTitle] = useState("");
   const [filePath, setFilePath] = useState("");
+  const [icon, setIcon] = useState(Icon.Terminal);
 
   function handleSubmit() {
     if (title && filePath) {
-      onAdd({ id: title.toLowerCase().replace(/\s+/g, "-"), title, path: filePath });
+      const formattedPath = formatPath(filePath);
+      onAdd({ id: title.toLowerCase().replace(/\s+/g, "-"), title, path: formattedPath, icon });
       pop();
     } else {
       showToast({
         style: Toast.Style.Failure,
-        title: "Both fields are required",
+        title: "All fields are required",
       });
     }
   }
@@ -79,23 +129,37 @@ function AddFileForm({ onAdd }: { onAdd: (file: { id: string; title: string; pat
     >
       <Form.TextField id="title" title="Title" value={title} onChange={setTitle} />
       <Form.TextField id="filePath" title="File Path" value={filePath} onChange={setFilePath} />
+      <Form.Dropdown id="icon" title="Icon" value={icon} onChange={setIcon}>
+        <Form.Dropdown.Item value={Icon.Terminal} title="Terminal" icon={Icon.Terminal} />
+        <Form.Dropdown.Item value={Icon.Document} title="Document" icon={Icon.Document} />
+        <Form.Dropdown.Item value={Icon.Folder} title="Folder" icon={Icon.Folder} />
+        {/* Add more icons as needed */}
+      </Form.Dropdown>
     </Form>
   );
 }
 
-function EditFileForm({ file, onEdit }: { file: { id: string; title: string; path: string }; onEdit: (editedFile: { id: string; title: string; path: string }) => void }) {
+function EditFileForm({
+  file,
+  onEdit,
+}: {
+  file: { id: string; title: string; path: string; icon: string };
+  onEdit: (editedFile: { id: string; title: string; path: string; icon: string }) => void;
+}) {
   const { pop } = useNavigation();
   const [title, setTitle] = useState(file.title);
   const [filePath, setFilePath] = useState(file.path);
+  const [icon, setIcon] = useState(file.icon);
 
   function handleSubmit() {
     if (title && filePath) {
-      onEdit({ id: file.id, title, path: filePath });
+      const formattedPath = formatPath(filePath);
+      onEdit({ id: file.id, title, path: formattedPath, icon });
       pop();
     } else {
       showToast({
         style: Toast.Style.Failure,
-        title: "Both fields are required",
+        title: "All fields are required",
       });
     }
   }
@@ -110,12 +174,18 @@ function EditFileForm({ file, onEdit }: { file: { id: string; title: string; pat
     >
       <Form.TextField id="title" title="Title" value={title} onChange={setTitle} />
       <Form.TextField id="filePath" title="File Path" value={filePath} onChange={setFilePath} />
+      <Form.Dropdown id="icon" title="Icon" value={icon} onChange={setIcon}>
+        <Form.Dropdown.Item value={Icon.Terminal} title="Terminal" icon={Icon.Terminal} />
+        <Form.Dropdown.Item value={Icon.Document} title="Document" icon={Icon.Document} />
+        <Form.Dropdown.Item value={Icon.Folder} title="Folder" icon={Icon.Folder} />
+        {/* Add more icons as needed */}
+      </Form.Dropdown>
     </Form>
   );
 }
 
 export default function Command() {
-  const [files, setFiles] = useState<{ id: string; title: string; path: string }[]>([]);
+  const [files, setFiles] = useState<{ id: string; title: string; path: string; icon: string }[]>([]);
 
   useEffect(() => {
     // Load files from local storage on mount
@@ -153,11 +223,11 @@ export default function Command() {
     }
   }, [files]);
 
-  function addFile(file: { id: string; title: string; path: string }) {
+  function addFile(file: { id: string; title: string; path: string; icon: string }) {
     setFiles((prevFiles) => [...prevFiles, file]);
   }
 
-  function editFile(editedFile: { id: string; title: string; path: string }) {
+  function editFile(editedFile: { id: string; title: string; path: string; icon: string }) {
     setFiles((prevFiles) => prevFiles.map((file) => (file.id === editedFile.id ? editedFile : file)));
   }
 
@@ -221,7 +291,7 @@ export default function Command() {
       {files.map((file) => (
         <List.Item
           key={file.id}
-          icon={Icon.Terminal}
+          icon={file.icon || Icon.Terminal}
           title={file.title}
           actions={
             <ActionPanel>
@@ -230,7 +300,11 @@ export default function Command() {
                 title="Open in Default Terminal"
                 onAction={() => openFileInDefaultTerminal(file.path)}
               />
-              <Action.Push icon={Icon.Pencil} title="Edit File" target={<EditFileForm file={file} onEdit={editFile} />} />
+              <Action.Push
+                icon={Icon.Pencil}
+                title="Edit File"
+                target={<EditFileForm file={file} onEdit={editFile} />}
+              />
               <Action
                 icon={Icon.Trash}
                 title="Remove File"
