@@ -10,49 +10,49 @@ const initialFiles = [
   {
     id: "zsh",
     title: "Zsh Config",
-    path: path.resolve(process.env.HOME || "", ".config/zsh/.zshrc"),
+    path: "~/.config/zsh/.zshrc",
     icon: Icon.Terminal,
   },
   {
     id: "nvim",
     title: "Neovim Config",
-    path: path.resolve(process.env.HOME || "", ".config/nvim"),
+    path: "~/.config/nvim",
     icon: Icon.Terminal,
   },
   {
     id: "alias",
     title: "Aliases Config",
-    path: path.resolve(process.env.HOME || "", ".config/zsh/aliases.zsh"),
+    path: "~/.config/zsh/aliases.zsh",
     icon: Icon.Terminal,
   },
   {
     id: "warp",
     title: "Warp Theme",
-    path: path.resolve(process.env.HOME || "", ".warp/themes/Celestial.yaml"),
+    path: "~/.warp/themes/Celestial.yaml",
     icon: Icon.Terminal,
   },
   {
     id: "gitconfig",
     title: "Git Config",
-    path: path.resolve(process.env.HOME || "", ".gitconfig"),
+    path: "~/.gitconfig",
     icon: Icon.Terminal,
   },
   {
     id: "starship",
     title: "Starship Config",
-    path: path.resolve(process.env.HOME || "", ".config/starship.toml"),
+    path: "~/.config/starship.toml",
     icon: Icon.Terminal,
   },
   {
     id: "bat",
     title: "Bat Config",
-    path: path.resolve(process.env.HOME || "", ".config/bat/config"),
+    path: "~/.config/bat/config",
     icon: Icon.Terminal,
   },
   {
     id: "aero",
     title: "Aerospace Config",
-    path: path.resolve(process.env.HOME || "", ".config/aerospace/aerospace.toml"),
+    path: "~/.config/aerospace/aerospace.toml",
     icon: Icon.Terminal,
   },
 ];
@@ -63,11 +63,14 @@ function openFileInDefaultTerminal(filePath: string) {
     title: "Opening in Terminal...",
   });
 
-  const kittyCommand = `/Applications/kitty.app/Contents/MacOS/kitty zsh -l -c 'nvim ${filePath}'`;
+  // Expand the tilde to the full home directory path
+  const expandedFilePath = filePath.replace(/^~\//, `${homedir()}/`);
+
+  const kittyCommand = `/Applications/kitty.app/Contents/MacOS/kitty zsh -l -c 'export USER=$(whoami); nvim ${expandedFilePath}'`;
 
   child_process.exec(kittyCommand, (error) => {
     if (error) {
-      const terminalCommand = `osascript -e 'tell application "Terminal" to do script "nvim ${filePath}"' -e 'tell application "Terminal" to activate'`;
+      const terminalCommand = `osascript -e 'tell application "Terminal" to do script "export USER=$(whoami); nvim ${expandedFilePath}"' -e 'tell application "Terminal" to activate'`;
 
       child_process.exec(terminalCommand, (terminalError) => {
         if (terminalError) {
@@ -94,9 +97,9 @@ function openFileInDefaultTerminal(filePath: string) {
 
 function formatPath(inputPath: string): string {
   let formattedPath = inputPath.trim();
-  if (formattedPath.startsWith("~")) {
-    formattedPath = path.join(homedir(), formattedPath.slice(1));
-  }
+  // if (formattedPath.startsWith("~")) {
+  //   formattedPath = path.join(homedir(), formattedPath.slice(1));
+  // }
   return path.resolve(formattedPath);
 }
 
