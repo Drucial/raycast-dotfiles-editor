@@ -63,28 +63,40 @@ function openFileInDefaultTerminal(filePath: string) {
     title: "Opening in Terminal...",
   });
 
-  // Expand the tilde to the full home directory path
   const expandedFilePath = filePath.replace(/^~\//, `${homedir()}/`);
+  const terminalCommand = `osascript -e 'tell application "Terminal" to do script "export USER=$(whoami); nvim ${expandedFilePath}"' -e 'tell application "Terminal" to activate'`;
 
+  child_process.exec(terminalCommand, (error) => {
+    if (error) {
+      showToast({
+        style: Toast.Style.Failure,
+        title: "Failed to open file in Terminal",
+        message: error.message,
+      });
+    } else {
+      showToast({
+        style: Toast.Style.Success,
+        title: "File opened successfully in Terminal",
+      });
+    }
+  });
+}
+
+function openFileInKitty(filePath: string) {
+  showToast({
+    style: Toast.Style.Animated,
+    title: "Opening in Kitty...",
+  });
+
+  const expandedFilePath = filePath.replace(/^~\//, `${homedir()}/`);
   const kittyCommand = `/Applications/kitty.app/Contents/MacOS/kitty zsh -l -c 'export USER=$(whoami); nvim ${expandedFilePath}'`;
 
   child_process.exec(kittyCommand, (error) => {
     if (error) {
-      const terminalCommand = `osascript -e 'tell application "Terminal" to do script "export USER=$(whoami); nvim ${expandedFilePath}"' -e 'tell application "Terminal" to activate'`;
-
-      child_process.exec(terminalCommand, (terminalError) => {
-        if (terminalError) {
-          showToast({
-            style: Toast.Style.Failure,
-            title: "Failed to open file",
-            message: terminalError.message,
-          });
-        } else {
-          showToast({
-            style: Toast.Style.Success,
-            title: "File opened successfully in Terminal",
-          });
-        }
+      showToast({
+        style: Toast.Style.Failure,
+        title: "Failed to open file in Kitty",
+        message: error.message,
       });
     } else {
       showToast({
@@ -95,11 +107,49 @@ function openFileInDefaultTerminal(filePath: string) {
   });
 }
 
+function openFileInWarp(filePath: string) {
+  showToast({
+    style: Toast.Style.Animated,
+    title: "Opening in Warp...",
+  });
+
+  // Expand the tilde to the full home directory path
+  const expandedFilePath = filePath.replace(/^~\//, `${homedir()}/`);
+
+  const warpCommand = `
+  osascript -e '
+  if application "Warp" is not running then
+    tell application "Warp" to launch
+    delay 1
+  else
+    tell application "System Events"
+      set frontmost of process "Warp" to true
+      delay 0.5
+      keystroke "t" using {command down}
+      delay 0.5
+    end tell
+  end if
+  tell application "System Events" to keystroke "export USER=$(whoami); nvim ${expandedFilePath}" & return'
+  `;
+
+  child_process.exec(warpCommand, (error) => {
+    if (error) {
+      showToast({
+        style: Toast.Style.Failure,
+        title: "Failed to open file in Warp",
+        message: error.message,
+      });
+    } else {
+      showToast({
+        style: Toast.Style.Success,
+        title: "File opened successfully in Warp",
+      });
+    }
+  });
+}
+
 function formatPath(inputPath: string): string {
   let formattedPath = inputPath.trim();
-  // if (formattedPath.startsWith("~")) {
-  //   formattedPath = path.join(homedir(), formattedPath.slice(1));
-  // }
   return path.resolve(formattedPath);
 }
 
@@ -303,6 +353,8 @@ export default function Command() {
                 title="Open in Default Terminal"
                 onAction={() => openFileInDefaultTerminal(file.path)}
               />
+              <Action icon={Icon.Terminal} title="Open in Kitty" onAction={() => openFileInKitty(file.path)} />
+              <Action icon={Icon.Terminal} title="Open in Warp" onAction={() => openFileInWarp(file.path)} />
               <Action.Push
                 icon={Icon.Pencil}
                 title="Edit File"
