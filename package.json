@@ -16,13 +16,6 @@
       "subtitle": "Edit your dotfiles using nvim",
       "description": "Launch your terminal and nvim your dotfiles",
       "mode": "view"
-    },
-    {
-      "name": "manage-dotfiles",
-      "title": "Manage Dotfiles",
-      "subtitle": "Add/Remove Dotfiles",
-      "description": "",
-      "mode": "no-view"
     }
   ],
   "dependencies": {
