@@ -1,7 +1,7 @@
 import { ActionPanel, Action, Icon, List } from "@raycast/api";
 import { useState, useEffect } from "react";
 import { ConfigFile } from "./types/index";
-import { exportFiles, importFiles } from "./utils/fileHandlers";
+import { exportFiles, importFiles } from "./utils/FileHandlers";
 import { EditFileForm } from "./components/EditFileForm";
 import { AddFileForm } from "./components/AddFileForm";
 import { loadFiles, saveFiles } from "./utils/storage";
@@ -152,7 +152,11 @@ export default function Command() {
         actions={
           <ActionPanel>
             <ActionPanel.Section>
-              <Action.Push icon={Icon.Plus} title="Add New File" target={<AddFileForm onAdd={handleAddFile} />} />
+              <Action.Push
+                icon={Icon.Plus}
+                title="Add New File"
+                target={<AddFileForm onAdd={handleAddFile} />}
+              />
             </ActionPanel.Section>
 
             <ActionPanel.Section title="Import/Export">

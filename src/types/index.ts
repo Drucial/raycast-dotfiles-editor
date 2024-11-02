@@ -5,7 +5,7 @@ export enum Application {
   TERMINAL = "terminal",
   CURSOR = "cursor",
   WARP = "warp",
-  KITTY = "kitty"
+  KITTY = "kitty",
 }
 
 export type ConfigFile = {
@@ -14,12 +14,12 @@ export type ConfigFile = {
   path: string;
   icon: Icon;
   application: Application;
-}; 
+};
 
 export interface Settings {
   defaultApplication: Application;
   files: ConfigFile[];
-} 
+}
 
 export type AddFileFormProps = {
   onAdd: (file: ConfigFile) => void;
