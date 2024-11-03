@@ -16,6 +16,8 @@ import {
 export default function Command() {
   const [files, setFiles] = useState<ConfigFile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [sortedFiles, setSortedFiles] = useState<ConfigFile[]>([]);
+
 
   // Load files on mount
   useEffect(() => {
@@ -39,6 +41,12 @@ export default function Command() {
     }
   }, [files]);
 
+  // Sort files by title
+  useEffect(() => {
+    setSortedFiles(files.sort((a, b) => a.title.localeCompare(b.title)));
+  }, [files]);
+
+  // Add a new file
   const handleAddFile = (file: ConfigFile) => {
     setFiles((prevFiles) => [...prevFiles, file]);
   };
@@ -70,7 +78,7 @@ export default function Command() {
 
   return (
     <List isLoading={isLoading}>
-      {files.map((file) => (
+      {sortedFiles.map((file) => (
         <List.Item
           key={file.id}
           icon={file.icon || Icon.Terminal}
