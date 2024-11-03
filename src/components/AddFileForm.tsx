@@ -6,9 +6,9 @@ const newConfigFile = (): ConfigFile => {
   return {
     id: "",
     title: "",
-    path: "",
-    icon: Icon.Code,
-    application: Application.VSCODE,
+    path: "~/.config/",
+    icon: Icon.Terminal,
+    application: Application.KITTY,
   };
 };
 

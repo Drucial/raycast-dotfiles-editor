@@ -5,8 +5,8 @@ export const initialFiles: ConfigFile[] = [
   {
     id: "zsh",
     title: "Zsh Config",
-    path: "~/.zshrc",
+    path: "~/.config/zsh/.zshrc",
     icon: Icon.Terminal,
-    application: Application.VSCODE,
+    application: Application.KITTY,
   },
 ]; 

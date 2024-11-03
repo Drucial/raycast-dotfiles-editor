@@ -13,7 +13,7 @@ export function CommonFileForm({ initialValues, onSubmit, submitTitle }: CommonF
   const [title, setTitle] = useState(initialValues?.title || "");
   const [filePath, setFilePath] = useState(initialValues?.path || "");
   const [icon, setIcon] = useState(initialValues?.icon || Icon.Terminal);
-  const [defaultApplication, setDefaultApplication] = useState(initialValues?.application || Application.VSCODE);
+  const [defaultApplication, setDefaultApplication] = useState(initialValues?.application || Application.KITTY);
 
   function handleSubmit() {
     if (title && filePath) {
