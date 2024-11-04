@@ -1,6 +1,6 @@
 import { LocalStorage, showToast, Toast } from "@raycast/api";
 import * as child_process from "child_process";
-import { expandPath } from "./fileHandlers";
+import { expandPath } from "./FileHandlers";
 
 export function setDefaultApplication(application: string) {
   LocalStorage.setItem("defaultApplication", application);
@@ -62,6 +62,7 @@ export function openFileInKitty(filePath: string) {
 }
 
 export function openFileInWarp(filePath: string) {
+  // TODO: Fix the case that warp is already running which currently doesnt work
   showToast({
     style: Toast.Style.Animated,
     title: "Opening in Warp...",

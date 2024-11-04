@@ -8,12 +8,20 @@ export enum Application {
   KITTY = "kitty",
 }
 
-export type ConfigFile = {
+export interface ConfigFile {
   id: string;
   title: string;
   path: string;
-  icon: Icon;
   application: Application;
+  icon: Icon;
+}
+
+export const ApplicationIcons: Record<Application, Icon> = {
+  [Application.VSCODE]: Icon.Code,
+  [Application.TERMINAL]: Icon.Terminal,
+  [Application.CURSOR]: Icon.CodeBlock,
+  [Application.WARP]: Icon.Terminal,
+  [Application.KITTY]: Icon.Terminal,
 };
 
 export interface Settings {
