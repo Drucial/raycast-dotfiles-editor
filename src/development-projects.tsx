@@ -9,7 +9,7 @@ import {
   openFileInCursor,
 } from "./utils/ApplicationHandlers";
 import { loadProjects, saveProjects } from "./utils/FileHandlers";
-import { AddProjectForm } from "./components/addProjectForm";
+import { AddProjectForm } from "./components/AddProjectForm";
 import { EditProjectForm } from "./components/EditProjectForm";
 
 export default function Command() {
