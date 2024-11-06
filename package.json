@@ -16,6 +16,13 @@
       "subtitle": "Edit your dotfiles using nvim",
       "description": "Launch your terminal and nvim your dotfiles",
       "mode": "view"
+    },
+    {
+      "name": "development-projects",
+      "title": "Development Projects",
+      "subtitle": "Manage your development projects",
+      "description": "Manage your development projects",
+      "mode": "view"
     }
   ],
   "dependencies": {

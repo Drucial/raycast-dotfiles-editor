@@ -2,7 +2,7 @@ import { showToast, Toast } from "@raycast/api";
 import { homedir } from "os";
 import path from "path";
 import fs from "fs";
-import { ConfigFile } from "../types/index";
+import { ConfigFile, Project } from "../types/index";
 
 // Path handling
 export function formatPath(inputPath: string): string {
@@ -89,3 +89,40 @@ export function importFiles(): Promise<ConfigFile[]> {
     });
   });
 }
+
+export function exportProjects(projects: Project[]): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const filePath = path.join(homedir(), "raycast-config-projects.json");
+    fs.writeFile(filePath, JSON.stringify(projects, null, 2), (err) => {
+      if (err) {
+        showToast({
+          style: Toast.Style.Failure,
+          title: "Failed to export projects",
+          message: err.message,
+        });
+      }
+    });
+  });
+}
+
+export function importProjects(): Promise<Project[]> {
+  return new Promise((resolve, reject) => {
+    const filePath = path.join(homedir(), "raycast-config-projects.json");
+    fs.readFile(filePath, "utf8", (err, data) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(JSON.parse(data) as Project[]);
+    });
+  });
+}
+
+export function loadProjects(): Promise<Project[]> {
+  return importProjects();
+}
+
+export function saveProjects(projects: Project[]): Promise<void> {
+  return exportProjects(projects);
+}
+
