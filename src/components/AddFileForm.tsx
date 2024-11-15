@@ -1,30 +1,110 @@
-import { Icon, useNavigation } from "@raycast/api";
-import { AddFileFormProps, Application, ConfigFile } from "../types/index";
-import { CommonFileForm } from "./FileForm";
+import {
+  Action,
+  ActionPanel,
+  Form,
+  useNavigation,
+  showToast,
+  Toast,
+  open,
+} from "@raycast/api";
+import { useState, useEffect } from "react";
+import { nanoid } from "nanoid";
+import fs from "fs";
+import { ConfigFile, FormValues } from "../types";
+import { APPLICATIONS } from "../constants";
 
-const newConfigFile = (): ConfigFile => {
-  return {
-    id: "",
-    title: "",
-    path: "~/.config/",
-    icon: Icon.Terminal,
-    application: Application.KITTY,
-  };
-};
+interface AddFileFormProps {
+  existingFiles: ConfigFile[];
+  onSubmit: (file: ConfigFile) => void;
+  editFile?: ConfigFile;
+}
 
-export function AddFileForm({ onAdd }: AddFileFormProps) {
+export default function AddFileForm({ existingFiles, onSubmit, editFile }: AddFileFormProps) {
   const { pop } = useNavigation();
+  const [nameError, setNameError] = useState<string | undefined>();
 
-  function handleSubmit(file: ConfigFile) {
-    onAdd(file);
-    pop();
-  }
+  const validateName = (name: string, currentId?: string) => {
+    if (!name) {
+      setNameError("Name is required");
+      return;
+    }
+
+    const duplicate = existingFiles.find(
+      (file) => file.name.toLowerCase() === name.toLowerCase() && file.id !== currentId
+    );
+
+    if (duplicate) {
+      setNameError("This name is already in use");
+    } else {
+      setNameError(undefined);
+    }
+  };
+
+  const handleSubmit = async (values: FormValues) => {
+    try {
+      const filePath = Array.isArray(values.path) ? values.path[0] : values.path;
+      
+      if (!filePath) {
+        throw new Error("No file selected");
+      }
+
+      const stats = await fs.promises.stat(filePath);
+      const fileType = stats.isDirectory() ? "directory" : "file";
+
+      const configFile: ConfigFile = {
+        id: editFile?.id || nanoid(),
+        name: values.name,
+        path: filePath,
+        type: fileType,
+        application: values.application,
+        command: values.command,
+      };
+
+      onSubmit(configFile);
+      await showToast(Toast.Style.Success, "File saved successfully");
+      pop();
+    } catch (error) {
+      await showToast(Toast.Style.Failure, "Error saving file", String(error));
+    }
+  };
 
   return (
-    <CommonFileForm
-      initialValues={newConfigFile()}
-      onSubmit={handleSubmit}
-      submitTitle="Add File"
-    />
+    <Form
+      actions={
+        <ActionPanel>
+          <Action.SubmitForm onSubmit={handleSubmit} />
+        </ActionPanel>
+      }
+    >
+      <Form.FilePicker
+        id="path"
+        title="File or Directory"
+        allowMultipleSelection={false}
+        defaultValue={editFile ? [editFile.path] : undefined}
+        showHiddenFiles={true}
+      />
+      
+      <Form.TextField
+        id="name"
+        title="Name"
+        placeholder="Enter a unique name"
+        defaultValue={editFile?.name}
+        error={nameError}
+        onChange={(value) => validateName(value, editFile?.id)}
+      />
+
+      <Form.Dropdown id="application" title="Application" defaultValue={editFile?.application}>
+        {APPLICATIONS.map((app) => (
+          <Form.Dropdown.Item key={app.id} value={app.id} title={app.name} />
+        ))}
+      </Form.Dropdown>
+
+      <Form.TextField
+        id="command"
+        title="Terminal Command"
+        placeholder="e.g., vim, nvim, nano"
+        defaultValue={editFile?.command}
+      />
+    </Form>
   );
-}
+} 
