@@ -5,13 +5,12 @@ import {
   useNavigation,
   showToast,
   Toast,
-  open,
 } from "@raycast/api";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { nanoid } from "nanoid";
 import fs from "fs";
 import { ConfigFile, FormValues } from "../types";
-import { APPLICATIONS } from "../constants";
+import { getApplications } from "../constants";
 
 interface AddFileFormProps {
   existingFiles: ConfigFile[];
@@ -22,6 +21,7 @@ interface AddFileFormProps {
 export default function AddFileForm({ existingFiles, onSubmit, editFile }: AddFileFormProps) {
   const { pop } = useNavigation();
   const [nameError, setNameError] = useState<string | undefined>();
+  const [isDirectory, setIsDirectory] = useState(editFile ? editFile.type === 'directory' : false);
 
   const validateName = (name: string, currentId?: string) => {
     if (!name) {
@@ -45,11 +45,15 @@ export default function AddFileForm({ existingFiles, onSubmit, editFile }: AddFi
       const filePath = Array.isArray(values.path) ? values.path[0] : values.path;
       
       if (!filePath) {
-        throw new Error("No file selected");
+        throw new Error("No file or directory selected");
       }
 
       const stats = await fs.promises.stat(filePath);
       const fileType = stats.isDirectory() ? "directory" : "file";
+
+      if ((isDirectory && fileType !== "directory") || (!isDirectory && fileType !== "file")) {
+        throw new Error(`Selected item must be a ${isDirectory ? "directory" : "file"}`);
+      }
 
       const configFile: ConfigFile = {
         id: editFile?.id || nanoid(),
@@ -61,12 +65,14 @@ export default function AddFileForm({ existingFiles, onSubmit, editFile }: AddFi
       };
 
       onSubmit(configFile);
-      await showToast(Toast.Style.Success, "File saved successfully");
+      await showToast(Toast.Style.Success, `${fileType} saved successfully`);
       pop();
     } catch (error) {
-      await showToast(Toast.Style.Failure, "Error saving file", String(error));
+      await showToast(Toast.Style.Failure, "Error saving item", String(error));
     }
   };
+
+  const applications = getApplications();
 
   return (
     <Form
@@ -76,12 +82,21 @@ export default function AddFileForm({ existingFiles, onSubmit, editFile }: AddFi
         </ActionPanel>
       }
     >
+      <Form.Checkbox
+        id="isDirectory"
+        label="Select Directory"
+        value={isDirectory}
+        onChange={setIsDirectory}
+      />
+
       <Form.FilePicker
         id="path"
-        title="File or Directory"
+        title={isDirectory ? "Select Directory" : "Select File"}
         allowMultipleSelection={false}
         defaultValue={editFile ? [editFile.path] : undefined}
         showHiddenFiles={true}
+        canChooseDirectories={isDirectory}
+        canChooseFiles={!isDirectory}
       />
       
       <Form.TextField
@@ -94,7 +109,7 @@ export default function AddFileForm({ existingFiles, onSubmit, editFile }: AddFi
       />
 
       <Form.Dropdown id="application" title="Application" defaultValue={editFile?.application}>
-        {APPLICATIONS.map((app) => (
+        {applications.map((app) => (
           <Form.Dropdown.Item key={app.id} value={app.id} title={app.name} />
         ))}
       </Form.Dropdown>

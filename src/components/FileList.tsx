@@ -10,7 +10,7 @@ import {
 } from "@raycast/api";
 import { useMemo, useState } from "react";
 import { ConfigFile } from "../types";
-import { FILE_ICONS, APPLICATIONS } from "../constants";
+import { FILE_ICONS, getApplications } from "../constants";
 import AddFileForm from "./AddFileForm";
 import { launchApplication } from "../utils/launcher";
 
@@ -23,6 +23,7 @@ interface FileListProps {
 export default function FileList({ files, onUpdate, isLoading }: FileListProps) {
   const { push } = useNavigation();
   const [searchText, setSearchText] = useState("");
+  const applications = getApplications();
 
   const sortedAndFilteredFiles = useMemo(() => {
     return files
@@ -81,6 +82,11 @@ export default function FileList({ files, onUpdate, isLoading }: FileListProps) 
     }
   };
 
+  const getApplicationName = (appId: string) => {
+    const app = applications.find(app => app.id === appId);
+    return app ? app.name : appId;
+  };
+
   return (
     <List
       searchText={searchText}
@@ -108,7 +114,7 @@ export default function FileList({ files, onUpdate, isLoading }: FileListProps) 
             <ActionPanel>
               <ActionPanel.Section>
                 <Action
-                  title="Open"
+                  title={`Open in ${getApplicationName(file.application)}`}
                   icon={Icon.ArrowRight}
                   onAction={() => handleOpen(file)}
                 />

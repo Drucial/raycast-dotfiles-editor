@@ -11,7 +11,17 @@
       "name": "edit-dotfile",
       "title": "Edit Dotfile",
       "description": "Manage and edit your configuration files",
-      "mode": "view"
+      "mode": "view",
+      "preferences": [
+        {
+          "name": "applications",
+          "description": "Configure your applications (JSON format)",
+          "type": "textfield",
+          "required": false,
+          "title": "Applications",
+          "default": "[{\"id\":\"vscode\",\"name\":\"Visual Studio Code\",\"command\":\"code\"},{\"id\":\"terminal\",\"name\":\"Terminal\",\"requiresCommand\":true},{\"id\":\"sublime\",\"name\":\"Sublime Text\",\"command\":\"subl\"},{\"id\":\"cursor\",\"name\":\"Cursor\",\"command\":\"cursor\"},{\"id\":\"warp\",\"name\":\"Warp\",\"requiresCommand\":true},{\"id\":\"kitty\",\"name\":\"Kitty\",\"requiresCommand\":true}]"
+        }
+      ]
     }
   ],
   "dependencies": {

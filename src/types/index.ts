@@ -6,11 +6,11 @@ export interface ConfigFile {
   path: string;
   type: FileType;
   application: string;
-  command?: string; // Optional: only used when application is terminal
+  command?: string;
 }
 
 export interface FormValues {
-  path: string;
+  path: string[];
   name: string;
   application: string;
   command?: string;
