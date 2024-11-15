@@ -41,7 +41,20 @@ export async function launchApplication(file: ConfigFile): Promise<void> {
           break;
         
         case "terminal":
-          await execAsync(`osascript -e 'tell application "Terminal" to do script "export USER=$(whoami); ${file.command} ${file.path}"' -e 'tell application "Terminal" to activate'`);
+          await execAsync(`osascript -e '
+            if application "Terminal" is running then
+              tell application "Terminal"
+                do script "export USER=$(whoami); ${file.command} \\"${file.path}\\""
+                activate
+              end tell
+            else
+              tell application "Terminal"
+                activate
+                delay 1
+                do script "export USER=$(whoami); ${file.command} \\"${file.path}\\""
+              end tell
+            end if
+          '`);
           break;
         
         default:
