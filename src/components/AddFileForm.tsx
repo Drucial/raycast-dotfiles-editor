@@ -18,15 +18,25 @@ interface AddFileFormProps {
   editFile?: ConfigFile;
 }
 
+interface FormErrors {
+  name?: string;
+  path?: string;
+  application?: string;
+  command?: string;
+}
+
 export default function AddFileForm({ existingFiles, onSubmit, editFile }: AddFileFormProps) {
   const { pop } = useNavigation();
-  const [nameError, setNameError] = useState<string | undefined>();
-  const [isDirectory, setIsDirectory] = useState(editFile ? editFile.type === 'directory' : false);
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [selectedAppId, setSelectedAppId] = useState<string>(editFile?.application || "");
+  const applications = getApplications();
+  
+  const selectedApp = applications.find(app => app.id === selectedAppId);
+  const showTerminalCommand = selectedApp?.requiresCommand;
 
   const validateName = (name: string, currentId?: string) => {
-    if (!name) {
-      setNameError("Name is required");
-      return;
+    if (!name || name.trim() === "") {
+      return "Name is required";
     }
 
     const duplicate = existingFiles.find(
@@ -34,13 +44,47 @@ export default function AddFileForm({ existingFiles, onSubmit, editFile }: AddFi
     );
 
     if (duplicate) {
-      setNameError("This name is already in use");
-    } else {
-      setNameError(undefined);
+      return "This name is already in use";
     }
+
+    return undefined;
+  };
+
+  const validateForm = (values: FormValues): FormErrors => {
+    const newErrors: FormErrors = {};
+
+    // Validate path
+    if (!values.path || values.path.length === 0) {
+      newErrors.path = "File or directory is required";
+    }
+
+    // Validate name
+    const nameError = validateName(values.name, editFile?.id);
+    if (nameError) {
+      newErrors.name = nameError;
+    }
+
+    // Validate application
+    if (!values.application) {
+      newErrors.application = "Application is required";
+    }
+
+    // Validate terminal command if required
+    if (showTerminalCommand && (!values.command || values.command.trim() === "")) {
+      newErrors.command = "Terminal command is required";
+    }
+
+    return newErrors;
   };
 
   const handleSubmit = async (values: FormValues) => {
+    const formErrors = validateForm(values);
+    
+    if (Object.keys(formErrors).length > 0) {
+      setErrors(formErrors);
+      return;
+    }
+
     try {
       const filePath = Array.isArray(values.path) ? values.path[0] : values.path;
       
@@ -51,17 +95,13 @@ export default function AddFileForm({ existingFiles, onSubmit, editFile }: AddFi
       const stats = await fs.promises.stat(filePath);
       const fileType = stats.isDirectory() ? "directory" : "file";
 
-      if ((isDirectory && fileType !== "directory") || (!isDirectory && fileType !== "file")) {
-        throw new Error(`Selected item must be a ${isDirectory ? "directory" : "file"}`);
-      }
-
       const configFile: ConfigFile = {
         id: editFile?.id || nanoid(),
-        name: values.name,
+        name: values.name.trim(),
         path: filePath,
         type: fileType,
         application: values.application,
-        command: values.command,
+        command: showTerminalCommand ? values.command?.trim() : undefined,
       };
 
       onSubmit(configFile);
@@ -72,8 +112,6 @@ export default function AddFileForm({ existingFiles, onSubmit, editFile }: AddFi
     }
   };
 
-  const applications = getApplications();
-
   return (
     <Form
       actions={
@@ -82,21 +120,15 @@ export default function AddFileForm({ existingFiles, onSubmit, editFile }: AddFi
         </ActionPanel>
       }
     >
-      <Form.Checkbox
-        id="isDirectory"
-        label="Select Directory"
-        value={isDirectory}
-        onChange={setIsDirectory}
-      />
-
       <Form.FilePicker
         id="path"
-        title={isDirectory ? "Select Directory" : "Select File"}
+        title="Select File or Directory"
         allowMultipleSelection={false}
         defaultValue={editFile ? [editFile.path] : undefined}
         showHiddenFiles={true}
-        canChooseDirectories={isDirectory}
-        canChooseFiles={!isDirectory}
+        canChooseDirectories={true}
+        canChooseFiles={true}
+        error={errors.path}
       />
       
       <Form.TextField
@@ -104,22 +136,45 @@ export default function AddFileForm({ existingFiles, onSubmit, editFile }: AddFi
         title="Name"
         placeholder="Enter a unique name"
         defaultValue={editFile?.name}
-        error={nameError}
-        onChange={(value) => validateName(value, editFile?.id)}
+        error={errors.name}
+        onChange={(value) => {
+          const error = validateName(value, editFile?.id);
+          setErrors(prev => ({ ...prev, name: error }));
+        }}
       />
 
-      <Form.Dropdown id="application" title="Application" defaultValue={editFile?.application}>
+      <Form.Dropdown 
+        id="application" 
+        title="Application" 
+        defaultValue={editFile?.application}
+        error={errors.application}
+        onChange={(newValue) => {
+          setSelectedAppId(newValue);
+          // Clear command error if switching from terminal app
+          const newApp = applications.find(app => app.id === newValue);
+          if (!newApp?.requiresCommand) {
+            setErrors(prev => ({ ...prev, command: undefined }));
+          }
+        }}
+      >
         {applications.map((app) => (
           <Form.Dropdown.Item key={app.id} value={app.id} title={app.name} />
         ))}
       </Form.Dropdown>
 
-      <Form.TextField
-        id="command"
-        title="Terminal Command"
-        placeholder="e.g., vim, nvim, nano"
-        defaultValue={editFile?.command}
-      />
+      {showTerminalCommand && (
+        <Form.TextField
+          id="command"
+          title="Terminal Command"
+          placeholder="e.g., vim, nvim, nano"
+          defaultValue={editFile?.command}
+          error={errors.command}
+          onChange={(value) => {
+            const error = !value || value.trim() === "" ? "Terminal command is required" : undefined;
+            setErrors(prev => ({ ...prev, command: error }));
+          }}
+        />
+      )}
     </Form>
   );
 } 

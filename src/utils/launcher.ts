@@ -32,7 +32,7 @@ export async function launchApplication(file: ConfigFile): Promise<void> {
             tell application "Warp"
               activate
             end tell
-            delay 1
+            delay 0
             tell application "System Events"
               keystroke "export USER=$(whoami); ${file.command} ${file.path}"
               keystroke return
