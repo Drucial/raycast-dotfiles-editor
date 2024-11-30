@@ -7,6 +7,7 @@ import {
   showToast,
   Toast,
   confirmAlert,
+  Alert,
 } from "@raycast/api";
 import { useMemo, useState } from "react";
 import { ConfigFile } from "../types";
